@@ -1,0 +1,20 @@
+object FShowImage: TFShowImage
+  Left = 779
+  Height = 421
+  Top = 319
+  Width = 499
+  Caption = 'Show Image'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnMouseMove = FormMouseMove
+  OnPaint = FormPaint
+  SessionProperties = 'Left;Top'
+  LCLVersion = '1.6.2.0'
+  object IniPropStorage: TIniPropStorage
+    StoredValues = <>
+    IniFileName = 'config.ini'
+    IniSection = 'ShowImage'
+    left = 396
+    top = 40
+  end
+end

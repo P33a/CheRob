@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <General>
+      <Flags>
+        <LRSInOutputDirectory Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <Title Value="gencam"/>
+    </General>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+      <environment>
+        <UserOverrides Count="1">
+          <Variable0 Name="OPENSSL_armcap" Value="7"/>
+        </UserOverrides>
+      </environment>
+    </RunParams>
+    <RequiredPackages Count="5">
+      <Item1>
+        <PackageName Value="BGRABitmapPack"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="lnetvisual"/>
+      </Item2>
+      <Item3>
+        <PackageName Value="TAChartLazarusPkg"/>
+      </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
+      </Item4>
+      <Item5>
+        <PackageName Value="SdpoVideo4L2Laz"/>
+        <MinVersion Minor="1" Release="1" Valid="True"/>
+      </Item5>
+    </RequiredPackages>
+    <Units Count="26">
+      <Unit0>
+        <Filename Value="gencam.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="3"/>
+        <CursorPos Y="20"/>
+        <UsageCount Value="221"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="main.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FMain"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="284"/>
+        <CursorPos X="51" Y="297"/>
+        <UsageCount Value="221"/>
+        <Bookmarks Count="1">
+          <Item0 X="11" Y="252" ID="1"/>
+        </Bookmarks>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="/usr/share/lazarus/1.0.12/components/Sdpo/SdpoVideo4L2/sdpovideo4l2.pas"/>
+        <UnitName Value="SdpoVideo4L2"/>
+        <TopLine Value="104"/>
+        <CursorPos X="83" Y="115"/>
+        <UsageCount Value="19"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="/usr/share/lazarus/1.0.12/components/Sdpo/SdpoVideo4L2/videodev2.pas"/>
+        <TopLine Value="1426"/>
+        <CursorPos Y="1450"/>
+        <UsageCount Value="19"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="camfeatures.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FCamFeatures"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="148"/>
+        <CursorPos X="11" Y="161"/>
+        <UsageCount Value="198"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="/usr/share/lazarus/1.2.2/components/Sdpo/SdpoVideo4L2/sdpovideo4l2.pas"/>
+        <UnitName Value="SdpoVideo4L2"/>
+        <TopLine Value="128"/>
+        <CursorPos Y="139"/>
+        <UsageCount Value="1"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="quicksort.pas"/>
+        <TopLine Value="9"/>
+        <CursorPos X="11" Y="25"/>
+        <UsageCount Value="144"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="/usr/share/lazarus/1.2.6/components/Sdpo/SdpoVideo4L2/sdpovideo4l2.pas"/>
+        <UnitName Value="SdpoVideo4L2"/>
+        <TopLine Value="511"/>
+        <CursorPos Y="528"/>
+        <UsageCount Value="1"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="/usr/share/lazarus/1.2.6/lcl/interfaces/gtk2/gtk2widgetset.inc"/>
+        <TopLine Value="2315"/>
+        <CursorPos Y="2330"/>
+        <UsageCount Value="1"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="rlan.pas"/>
+        <UnitName Value="RLan"/>
+        <CursorPos X="31" Y="45"/>
+        <UsageCount Value="10"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="utils.pas"/>
+        <CursorPos X="14" Y="6"/>
+        <UsageCount Value="10"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="/usr/share/lazarus/1.2.4/components/Sdpo/SdpoFastForm/sdpofastformlinux.inc"/>
+        <TopLine Value="839"/>
+        <CursorPos X="16" Y="839"/>
+        <UsageCount Value="2"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="main.lfm"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="95"/>
+        <CursorPos X="6" Y="121"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="/usr/share/lazarus/1.6.2/lcl/stdctrls.pp"/>
+        <UnitName Value="StdCtrls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1228"/>
+        <CursorPos X="7" Y="1255"/>
+        <UsageCount Value="2"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="/usr/share/lazarus/1.6.2/lcl/include/buttoncontrol.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="34"/>
+        <CursorPos X="3" Y="36"/>
+        <UsageCount Value="2"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="/usr/share/lazarus/1.6.2/lcl/include/customcheckbox.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="124"/>
+        <CursorPos X="3" Y="133"/>
+        <UsageCount Value="2"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="../../lazarus/sdpo/SdpoVideo4L2/sdpovideo4l2.pas"/>
+        <UnitName Value="SdpoVideo4L2"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="22"/>
+        <CursorPos X="18" Y="42"/>
+        <UsageCount Value="9"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="showimage.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FShowImage"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="17"/>
+        <CursorPos X="32" Y="22"/>
+        <UsageCount Value="29"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="videoconv.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="29"/>
+        <CursorPos Y="29"/>
+        <UsageCount Value="29"/>
+        <Loaded Value="True"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../../lazarus/bgrabitmap/bgrabitmap/bgrapixel.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="27" Y="8"/>
+        <UsageCount Value="9"/>
+      </Unit19>
+      <Unit20>
+        <Filename Value="../../lazarus/bgrabitmap/bgrabitmap/bgradefaultbitmap.pas"/>
+        <UnitName Value="BGRADefaultBitmap"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="4345"/>
+        <CursorPos X="3" Y="4347"/>
+        <UsageCount Value="9"/>
+      </Unit20>
+      <Unit21>
+        <Filename Value="/usr/share/fpcsrc/3.0.0/packages/fcl-image/src/fpimage.pp"/>
+        <UnitName Value="FPimage"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="126"/>
+        <CursorPos X="17" Y="144"/>
+        <UsageCount Value="9"/>
+      </Unit21>
+      <Unit22>
+        <Filename Value="../../../dev/lazarus/1.6.2/components/tachart/tacustomseries.pas"/>
+        <UnitName Value="TACustomSeries"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1230"/>
+        <CursorPos Y="1247"/>
+        <UsageCount Value="10"/>
+      </Unit22>
+      <Unit23>
+        <Filename Value="../../../dev/lazarus/1.6.2/lcl/include/customform.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="198"/>
+        <CursorPos Y="214"/>
+        <UsageCount Value="12"/>
+      </Unit23>
+      <Unit24>
+        <Filename Value="../../../dev/lazarus/1.6.2/lcl/stdctrls.pp"/>
+        <UnitName Value="StdCtrls"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="83"/>
+        <CursorPos X="15" Y="98"/>
+        <UsageCount Value="10"/>
+      </Unit24>
+      <Unit25>
+        <Filename Value="../../../dev/lazarus/1.6.2/lcl/include/scrollbar.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="86"/>
+        <CursorPos X="3" Y="97"/>
+        <UsageCount Value="10"/>
+      </Unit25>
+    </Units>
+    <JumpHistory Count="25" HistoryIndex="24">
+      <Position1>
+        <Filename Value="main.pas"/>
+        <Caret Line="105" Column="26" TopLine="89"/>
+      </Position1>
+      <Position2>
+        <Filename Value="main.pas"/>
+        <Caret Line="213" Column="16" TopLine="192"/>
+      </Position2>
+      <Position3>
+        <Filename Value="main.pas"/>
+        <Caret Line="211" TopLine="173"/>
+      </Position3>
+      <Position4>
+        <Filename Value="main.pas"/>
+        <Caret Line="174" Column="47" TopLine="163"/>
+      </Position4>
+      <Position5>
+        <Filename Value="main.pas"/>
+        <Caret Line="180" Column="30" TopLine="177"/>
+      </Position5>
+      <Position6>
+        <Filename Value="main.pas"/>
+        <Caret Line="62" Column="27" TopLine="62"/>
+      </Position6>
+      <Position7>
+        <Filename Value="main.pas"/>
+        <Caret Line="210" Column="66" TopLine="193"/>
+      </Position7>
+      <Position8>
+        <Filename Value="main.pas"/>
+        <Caret Line="233" Column="13" TopLine="208"/>
+      </Position8>
+      <Position9>
+        <Filename Value="main.pas"/>
+        <Caret Line="243" Column="42" TopLine="218"/>
+      </Position9>
+      <Position10>
+        <Filename Value="main.pas"/>
+        <Caret Line="250" Column="7" TopLine="224"/>
+      </Position10>
+      <Position11>
+        <Filename Value="main.pas"/>
+        <Caret Line="203" Column="45" TopLine="185"/>
+      </Position11>
+      <Position12>
+        <Filename Value="main.pas"/>
+        <Caret Line="235" Column="28" TopLine="212"/>
+      </Position12>
+      <Position13>
+        <Filename Value="main.pas"/>
+        <Caret Line="240" Column="39" TopLine="219"/>
+      </Position13>
+      <Position14>
+        <Filename Value="main.pas"/>
+        <Caret Line="270" TopLine="241"/>
+      </Position14>
+      <Position15>
+        <Filename Value="main.pas"/>
+        <Caret Line="308" TopLine="285"/>
+      </Position15>
+      <Position16>
+        <Filename Value="main.pas"/>
+        <Caret Line="266" Column="10" TopLine="241"/>
+      </Position16>
+      <Position17>
+        <Filename Value="main.pas"/>
+        <Caret Line="265" Column="10" TopLine="240"/>
+      </Position17>
+      <Position18>
+        <Filename Value="main.pas"/>
+        <Caret Line="264" Column="10" TopLine="239"/>
+      </Position18>
+      <Position19>
+        <Filename Value="main.pas"/>
+        <Caret Line="263" Column="10" TopLine="238"/>
+      </Position19>
+      <Position20>
+        <Filename Value="main.pas"/>
+        <Caret Line="264" Column="9" TopLine="247"/>
+      </Position20>
+      <Position21>
+        <Filename Value="camfeatures.pas"/>
+        <Caret Line="66" Column="21" TopLine="52"/>
+      </Position21>
+      <Position22>
+        <Filename Value="camfeatures.pas"/>
+        <Caret Line="95" Column="70" TopLine="84"/>
+      </Position22>
+      <Position23>
+        <Filename Value="camfeatures.pas"/>
+        <Caret Line="22" Column="24"/>
+      </Position23>
+      <Position24>
+        <Filename Value="camfeatures.pas"/>
+        <Caret Line="183" Column="3" TopLine="160"/>
+      </Position24>
+      <Position25>
+        <Filename Value="camfeatures.pas"/>
+        <Caret Line="152" Column="3" TopLine="148"/>
+      </Position25>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <Target>
+      <Filename Value="gencam"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Linking>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+        <UseExternalDbgSyms Value="True"/>
+      </Debugging>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
+  </CompilerOptions>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsGlobal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="../../rob2008/final/MDecOmni3/Tactic.pas"/>
+        <Line Value="914"/>
+      </Item1>
+    </BreakPoints>
+    <Watches Count="8">
+      <Item1>
+        <Expression Value="pimage"/>
+      </Item1>
+      <Item2>
+        <Expression Value="srcpix"/>
+      </Item2>
+      <Item3>
+        <Expression Value="xini"/>
+      </Item3>
+      <Item4>
+        <Expression Value="LimitsFilter[0]"/>
+      </Item4>
+      <Item5>
+        <Expression Value="idx"/>
+      </Item5>
+      <Item6>
+        <Expression Value="actLimFiltSize"/>
+      </Item6>
+      <Item7>
+        <Expression Value="ix"/>
+      </Item7>
+      <Item8>
+        <Expression Value="min_index"/>
+      </Item8>
+    </Watches>
+    <Exceptions Count="2">
+      <Item1>
+        <Name Value="ECodetoolError"/>
+      </Item1>
+      <Item2>
+        <Name Value="EFOpenError"/>
+      </Item2>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

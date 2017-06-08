@@ -1,0 +1,217 @@
+object FMain: TFMain
+  Left = 265
+  Height = 523
+  Top = 160
+  Width = 359
+  HorzScrollBar.Page = 261
+  VertScrollBar.Page = 32
+  ActiveControl = CBVideoActive
+  Caption = 'GenCam V1.0'
+  ClientHeight = 523
+  ClientWidth = 359
+  Font.Height = -12
+  Font.Name = 'Sans'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  SessionProperties = 'CBChartActive.Checked;CBShowImage.Checked;EditDevice.Text;EditLineCount.Text;EditLine.Text;Image.LeftPos;Image.TopPos;Left;Top;Width;Height'
+  LCLVersion = '1.6.2.0'
+  object CBVideoActive: TCheckBox
+    Left = 4
+    Height = 23
+    Top = 4
+    Width = 102
+    Caption = 'Video Active'
+    OnChange = CBVideoActiveChange
+    TabOrder = 0
+  end
+  object EditDevice: TEdit
+    Left = 118
+    Height = 27
+    Top = 4
+    Width = 140
+    AutoSize = False
+    AutoSelect = False
+    TabOrder = 1
+    Text = '/dev/video0'
+  end
+  object Memo: TMemo
+    Left = 0
+    Height = 120
+    Top = 144
+    Width = 245
+    Anchors = [akTop, akLeft, akRight]
+    Font.Height = -11
+    Font.Name = 'Sans'
+    ParentFont = False
+    TabOrder = 2
+  end
+  object StatusBar: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 500
+    Width = 359
+    Panels = <>
+  end
+  object Chart: TChart
+    Left = 4
+    Height = 200
+    Top = 296
+    Width = 352
+    AxisList = <    
+      item
+        Marks.LabelFont.Height = -12
+        Marks.LabelFont.Name = 'Sans'
+        Minors = <>
+        Range.Max = 300
+        Range.UseMax = True
+        Range.UseMin = True
+        Title.LabelFont.Orientation = 900
+      end    
+      item
+        Alignment = calBottom
+        Marks.LabelFont.Height = -12
+        Marks.LabelFont.Name = 'Sans'
+        Minors = <>
+      end>
+    Foot.Brush.Color = clBtnFace
+    Foot.Font.Color = clBlue
+    Title.Brush.Color = clBtnFace
+    Title.Font.Color = clBlue
+    Title.Text.Strings = (
+      'TAChart'
+    )
+    object LineSeriesRED: TLineSeries
+      LinePen.Color = clRed
+    end
+    object LineSeriesProc: TLineSeries
+    end
+  end
+  object CBChartActive: TCheckBox
+    Left = 4
+    Height = 23
+    Top = 272
+    Width = 101
+    Caption = 'Chart Active'
+    TabOrder = 5
+  end
+  object SGScanLines: TStringGrid
+    Left = 0
+    Height = 76
+    Top = 64
+    Width = 356
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoFillColumns = True
+    ColCount = 4
+    DefaultRowHeight = 18
+    FixedCols = 0
+    Font.Height = -11
+    Font.Name = 'Sans'
+    ParentFont = False
+    RowCount = 4
+    TabOrder = 6
+    TitleFont.Height = -11
+    TitleFont.Name = 'Sans'
+    ColWidths = (
+      88
+      88
+      88
+      90
+    )
+    Cells = (
+      16
+      0
+      0
+      'Y'
+      0
+      1
+      '80'
+      0
+      2
+      '120'
+      0
+      3
+      '210'
+      1
+      0
+      'Xi'
+      1
+      1
+      '10'
+      1
+      2
+      '10'
+      1
+      3
+      '10'
+      2
+      0
+      'Xf'
+      2
+      1
+      '230'
+      2
+      2
+      '230'
+      2
+      3
+      '230'
+      3
+      0
+      'Count'
+      3
+      1
+      '2'
+      3
+      2
+      '2'
+      3
+      3
+      '2'
+    )
+  end
+  object MemoDebug: TMemo
+    Left = 249
+    Height = 120
+    Top = 144
+    Width = 104
+    Anchors = [akTop, akLeft, akRight]
+    Font.Height = -11
+    Font.Name = 'Sans'
+    ParentFont = False
+    TabOrder = 7
+  end
+  object CBShowImage: TCheckBox
+    Left = 4
+    Height = 23
+    Top = 32
+    Width = 101
+    Caption = 'Show Image'
+    TabOrder = 8
+  end
+  object Video: TSdpoVideo4L2
+    Active = False
+    Width = 320
+    Height = 240
+    FrameRate = 30
+    BayerMode = False
+    PixelFormat = uvcpf_BGR32
+    UseLibV4l = True
+    OnFrame = VideoFrame
+    left = 112
+    top = 144
+  end
+  object IniPropStorage: TIniPropStorage
+    StoredValues = <>
+    IniSection = 'Main'
+    left = 240
+    top = 192
+  end
+  object UDPRob: TLUDPComponent
+    Port = 9021
+    Timeout = 0
+    left = 112
+    top = 200
+  end
+end
