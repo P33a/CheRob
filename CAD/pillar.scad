@@ -1,0 +1,17 @@
+
+
+module hexagon(size, height) {
+  boxWidth = size / sqrt(3);
+  for (r = [-60, 0, 60]) rotate([0,0,r]) cube([boxWidth, size, height], true);
+}
+
+module pilar(ph = 60) {
+  difference() {
+    hexagon(8, ph);
+    cylinder(d = 3.4, h = ph + 1, center = true, $fn = 64);
+  }
+}
+
+
+rotate([90, 0, 90])
+pilar();
