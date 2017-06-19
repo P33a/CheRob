@@ -48,11 +48,11 @@ module motor_support(){
     rotate([0, 90, 0])
       cylinder(h = 36, r = screw_M4, $fs = 0.5, center = true);
     
-    translate([25 - 60, 36/2, 0])
+    translate([25 - 60, 35/2, 0])
     rotate([0, 90, 0])
       cylinder(h = 36, r = screw_M4, $fs = 0.5, center = true);    
     
-    translate([25 - 60, -36/2, 0])
+    translate([25 - 60, -35/2, 0])
     rotate([0, 90, 0])
       cylinder(h = 36, r = screw_M4, $fs = 0.5, center = true);
   }
