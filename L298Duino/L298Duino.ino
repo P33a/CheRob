@@ -1,5 +1,6 @@
 #include <TimerOne.h>
 #include "proj_types.h"
+#include "micros_sonar.h"
 
 int pwm1 = 0;
 int pwm2 = 0;
@@ -10,14 +11,14 @@ const int PWM_Pin2 = 5;
 const int out_dir = 7;
 const int out_dir2 = 4;
 
-const int enc_fase1a = 2;
-const int enc_fase2a = 3;
+const int enc_fase1a = 12;
+const int enc_fase2a = 13;
 
 const int enc_fase1b = 9;
 const int enc_fase2b = 10;
 
 const int Bat_ON_Pin = 8;
-const int LedPin = 13;
+//const int LedPin = 13;
 const int ButtonLedPin = 11;
 
 #define RELAY_ON 0
@@ -26,8 +27,11 @@ const int ButtonLedPin = 11;
 const int VBatPin = A0;
 const int IBatPin = A1;
 
-// 2  <- enc1a
-// 3  <- enc2a
+const int SonarATrig = A2;
+const int SonarBTrig = A3;
+
+// 2  <- SonarA echo
+// 3  <- SonarB echo
 // 4  -> Dir1
 // 5  -> PWM1
 // 6  -> PWM2
@@ -36,13 +40,13 @@ const int IBatPin = A1;
 // 9  <- enc1b
 // 10 <- enc2b
 // 11 -> Button LED
-// 12
-// 13 -> Debug LED
+// 12 <- enc1a
+// 13 <- enc2a
 
 // A0 <- VBat
 // A1 <- IBat
-// A2
-// A3
+// A2 -> SonarA Trig
+// A3 -> SonarB Trig
 // A4
 // A5
 // A6
@@ -65,6 +69,11 @@ int last_odo[2];
 float w_odo[2];
 float w_ref[2];
 int PID_out[2];
+
+int motor_timeout = 200;
+unsigned long last_motor_com;
+
+uint8_t sonar_side;
 
 int frame;
 char curChannel;
@@ -125,73 +134,8 @@ float calc_pid(PID_t& pid, float w_ref, float w)
 }
 
 
-void setup()
-{
-  enc1_state = 0;
-  enc1 = 0;
-  enc2_state = 0;
-  enc2 = 0;
-
-  setup_PIDs();
-  
-  digitalWrite(LedPin, 0);
-  pinMode(LedPin, OUTPUT);
-
-  digitalWrite(ButtonLedPin, 0);
-  pinMode(ButtonLedPin, OUTPUT);
-  
-  digitalWrite(Bat_ON_Pin, RELAY_OFF);
-  pinMode(Bat_ON_Pin, OUTPUT);
-  
-  pinMode(enc_fase1a, INPUT);
-  digitalWrite(enc_fase1a, HIGH);
-
-  pinMode(enc_fase2a, INPUT);
-  digitalWrite(enc_fase2a, HIGH);
-  
-  pinMode(enc_fase1b, INPUT);
-  digitalWrite(enc_fase1b, HIGH);
-
-  pinMode(enc_fase2b, INPUT);
-  digitalWrite(enc_fase2b, HIGH);
-
-  pinMode(out_dir, OUTPUT);
-  pinMode(out_dir2, OUTPUT);
-
-  pinMode(VBatPin, INPUT);
-  pinMode(IBatPin, INPUT);
-
-  old1_state = (digitalRead(enc_fase2a) << 1) + digitalRead(enc_fase1a);
-  old2_state = (digitalRead(enc_fase2b) << 1) + digitalRead(enc_fase1b);
-  
-  
-  digitalWrite(out_dir, LOW);
-  digitalWrite(out_dir2, LOW);
-  analogReference(DEFAULT);
-  
-  Timer1.initialize(100);            // initialize timer1, and set a 10k frequency  
-  Timer1.attachInterrupt(callback);  // attaches callback() as a timer overflow interrupt
-
-  motor1(0);
-  motor2(0);
-  
-  frame = -1;
-  Serial.begin(115200);
-  Serial.println("Serial channels");
-  sendChannel('G', 0);
-  Serial.println();
-
-  w_ref[0] = 0;
-  w_ref[1] = 0;
-
-  // Faster PWM for timer0 prescaler from 64 to 8;
-  //TCCR0B &= ~(1 << CS00);
-  
-}
-
 void callback(void)
 {
-  
   if (digitalRead(enc_fase2a)) enc1_state = 2;
   else enc1_state = 0;
   if (digitalRead(enc_fase1a)) enc1_state += 1;
@@ -199,6 +143,7 @@ void callback(void)
    if (digitalRead(enc_fase2b)) enc2_state = 2;
   else enc2_state = 0;
   if (digitalRead(enc_fase1b)) enc2_state += 1;
+  sei();
   
 /////////////////////
   if (old1_state == 0) { 
@@ -322,9 +267,11 @@ byte isHexNibble(char c)
 void motor1(int pwm)
 {
   if (pwm > 0) {
+    if (pwm > 255) pwm = 255;
     digitalWrite(out_dir, LOW);
     analogWrite(PWM_Pin1, pwm);
   } else {
+    if (pwm < -255) pwm = -255;
     digitalWrite(out_dir, HIGH);
     analogWrite(PWM_Pin1, -pwm);
   }
@@ -333,9 +280,11 @@ void motor1(int pwm)
 void motor2(int pwm)
 {
   if (pwm < 0) {
+    if (pwm < -255) pwm = -255;
     digitalWrite(out_dir2, LOW);
     analogWrite(PWM_Pin2, -pwm);
   } else {
+    if (pwm > 255) pwm = 255;
     digitalWrite(out_dir2, HIGH);
     analogWrite(PWM_Pin2, pwm);
   }
@@ -364,8 +313,10 @@ void processFrame(void)
     motor2(pwm2);
   } else if (curChannel == 'R') {
     w_ref[0] = value;
+    last_motor_com = millis();
   } else if (curChannel == 'S') {
     w_ref[1] = value;
+    last_motor_com = millis();
   } else if (curChannel == 'P') {
     pid[0].active = value;
     pid[1].active = value;
@@ -373,13 +324,87 @@ void processFrame(void)
   
 }
 
+
+
+
+void setup()
+{
+  enc1_state = 0;
+  enc1 = 0;
+  enc2_state = 0;
+  enc2 = 0;
+
+  setup_PIDs();
+  
+  //digitalWrite(LedPin, 0);
+  //pinMode(LedPin, OUTPUT);
+
+  digitalWrite(ButtonLedPin, 0);
+  pinMode(ButtonLedPin, OUTPUT);
+  
+  digitalWrite(Bat_ON_Pin, RELAY_OFF);
+  pinMode(Bat_ON_Pin, OUTPUT);
+  
+  pinMode(enc_fase1a, INPUT);
+  digitalWrite(enc_fase1a, HIGH);
+
+  pinMode(enc_fase2a, INPUT);
+  digitalWrite(enc_fase2a, HIGH);
+  
+  pinMode(enc_fase1b, INPUT);
+  digitalWrite(enc_fase1b, HIGH);
+
+  pinMode(enc_fase2b, INPUT);
+  digitalWrite(enc_fase2b, HIGH);
+
+  pinMode(out_dir, OUTPUT);
+  pinMode(out_dir2, OUTPUT);
+
+  pinMode(VBatPin, INPUT);
+  pinMode(IBatPin, INPUT);
+
+  old1_state = (digitalRead(enc_fase2a) << 1) + digitalRead(enc_fase1a);
+  old2_state = (digitalRead(enc_fase2b) << 1) + digitalRead(enc_fase1b);
+  
+  
+  digitalWrite(out_dir, LOW);
+  digitalWrite(out_dir2, LOW);
+  analogReference(DEFAULT);
+
+  SonarA.init(SonarATrig);
+  SonarB.init(SonarBTrig);
+  SonarA.start_measure(100);
+  
+  Timer1.initialize(100);            // initialize timer1, and set a 10k frequency  
+  Timer1.attachInterrupt(callback);  // attaches callback() as a timer overflow interrupt
+
+  motor1(0);
+  motor2(0);
+  
+  frame = -1;
+  Serial.begin(115200);
+  Serial.println("Serial channels");
+  sendChannel('G', 0);
+  Serial.println();
+
+  w_ref[0] = 0;
+  w_ref[1] = 0;
+
+  // Faster PWM for timer0 prescaler from 64 to 8;
+  //TCCR0B &= ~(1 << CS00);
+  
+}
+
+
+
 int AD_bat;
+unsigned long dist_L, dist_R;
 
 void loop()
 {
-  byte b, i;
-  
+  byte b, i;  
   unsigned long stop;
+
 
   AD_bat = (15 * AD_bat + analogRead(VBatPin)) / 16; 
   if (AD_bat > 600) {
@@ -392,7 +417,7 @@ void loop()
 
   if(currentTime >= 1000){  
     digitalWrite(Bat_ON_Pin, RELAY_ON);    
-    digitalWrite(LedPin, 1);    
+    //digitalWrite(LedPin, 1);    
   }
   
   if(currentTime >= (loopTime + 40)) {
@@ -410,8 +435,13 @@ void loop()
     }
 
 
-    if(pid[0].active) motor1(PID_out[0]);
-    if(pid[1].active) motor2(PID_out[1]);
+    if (millis() - last_motor_com < motor_timeout) {
+      if(pid[0].active) motor1(PID_out[0]);
+      if(pid[1].active) motor2(PID_out[1]);
+    } else {
+      motor1(0);
+      motor2(0);
+    }
    
     sendChannel('V', enc1);
     sendChannel('W', enc2);
@@ -422,11 +452,26 @@ void loop()
     sendChannel('v', w_odo[0]);
     sendChannel('w', w_odo[1]);
 
+    sendChannel('s', dist_L);
+    sendChannel('o', dist_R);
+    //Serial.print(SonarA.state);
+
     //stop =  millis();
     //sendChannel('L', stop - currentTime);
     Serial.println();
 
     loopTime = loopTime + 40;  // Updates loopTime
+    
+    if (sonar_side == 0  && SonarA.measure_available()) {
+      dist_L = SonarA.read_measure(); // TODO Convert to mm
+      SonarB.start_measure(100);
+      sonar_side = 1;
+    } else  if (sonar_side == 1  && SonarB.measure_available()) {
+      dist_R = SonarB.read_measure(); // TODO Convert to mm
+      SonarA.start_measure(100);  
+      sonar_side = 0;
+    }
+
   }
 
   // Serial State machine
