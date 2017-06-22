@@ -7,9 +7,19 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, IniPropStorage, SdpoSerial, LCLIntf, LCLType, ComCtrls, channels,
-  robot, math;
+  robot, lNetComponents, math, lNet, rlan;
 
 type
+    TScanSeg = record
+    Y, Xi, Xf: integer;
+  end;
+
+  TScanSegs = array of TScanSeg;
+
+  TActionPars = record
+    Vnom, Kw, Vdec: double;
+  end;
+
 
   { TFMain }
 
@@ -22,7 +32,11 @@ type
     BSetRobotPose: TButton;
     BRobotSetVW: TButton;
     CBRawDebug: TCheckBox;
+    CBAction: TComboBox;
+    EditLineFollowKw: TEdit;
+    EditLineFollowVdec: TEdit;
     EditRobotV: TEdit;
+    EditLineFollowVnom: TEdit;
     EditRobotW: TEdit;
     EditRobotX: TEdit;
     EditRobotSetX: TEdit;
@@ -38,6 +52,9 @@ type
     EditWheelDistance: TEdit;
     IniPropStorage: TIniPropStorage;
     Label1: TLabel;
+    Label10: TLabel;
+    Label11: TLabel;
+    Label12: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -45,6 +62,9 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Label8: TLabel;
+    Label9: TLabel;
+    TabNet: TTabSheet;
+    UDPCam: TLUDPComponent;
     MemoDebug: TMemo;
     PageControl: TPageControl;
     Serial: TSdpoSerial;
@@ -67,8 +87,11 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SerialRxData(Sender: TObject);
+    procedure UDPCamError(const msg: string; aSocket: TLSocket);
+    procedure UDPCamReceive(aSocket: TLSocket);
   private
     procedure processFrame(channel: char; value: integer; source: integer);
+    procedure SendVW(var RS: TRobotState);
     procedure ShowSerialState;
     { private declarations }
   public
@@ -82,6 +105,13 @@ var
 
   RS, RS_ant: TRobotState;
   RC: TRobotConf;
+
+  UDPBuffer: TUDPBuffer;
+  ScanSegs: TScanSegs;
+  ScanSegsCount: integer;
+
+  ActionPars: TActionPars;
+  line_x: double;
 
 implementation
 
@@ -116,6 +146,22 @@ begin
   ShowSerialState();
 end;
 
+
+procedure TFMain.SendVW(var RS: TRobotState);
+var V1, V2: double;
+    Odo1ref, Odo2ref: integer;
+begin
+
+  V1 := RS.V + RS.W * RC.wheel_dist / 2;
+  V2 := RS.V - RS.W * RC.wheel_dist / 2;
+
+  Odo1ref := round(V1 * RC.ticks_per_rad * RC.dt / RC.wheel_radius);
+  Odo2ref := round(V2 * RC.ticks_per_rad * RC.dt / RC.wheel_radius);
+
+  SendMessage('R', Odo1ref);
+  SendMessage('S', Odo2ref);
+end;
+
 procedure TFMain.BRobotSetVWClick(Sender: TObject);
 var Vref, Wref: double;
     V1, V2: double;
@@ -134,7 +180,7 @@ begin
   SendMessage('R', Odo1ref);
   SendMessage('S', Odo2ref);
 
-  MemoDebug.Lines.Add(format('OdoRef: %d, %d (%g)',[Odo1ref, Odo2ref, RC.dt]));
+  //MemoDebug.Lines.Add(format('OdoRef: %d, %d (%g)',[Odo1ref, Odo2ref, RC.dt]));
 
 end;
 
@@ -166,6 +212,7 @@ end;
 
 procedure TFMain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
+  UDPCam.Disconnect();
   BRobotStop.Click();
 end;
 
@@ -176,12 +223,16 @@ begin
   RC.wheel_dist := 0.188;   //
   RC.wheel_radius := 0.04105;   //in meters (SI)
   RC.ticks_per_rad := 305.5775;
+
+  SetLength(ScanSegs, 512);
+  ScanSegsCount := 0;
 end;
 
 procedure TFMain.FormShow(Sender: TObject);
 begin
   ShowSerialState();
   BConfigSet.Click();
+  UDPCam.Listen(9020);
 end;
 
 procedure TFMain.FormDestroy(Sender: TObject);
@@ -207,6 +258,85 @@ begin
       MemoDebug.Lines.Delete(0);
     end;
   end;
+end;
+
+procedure TFMain.UDPCamError(const msg: string; aSocket: TLSocket);
+begin
+  StatusBar.SimpleText := msg;
+end;
+
+procedure TFMain.UDPCamReceive(aSocket: TLSocket);
+var msg: string;
+    num_bytes: integer;
+    mtype, version: byte;
+    i, idx: integer;
+    e, d, best_d: double;
+    last_y: integer;
+begin
+  ClearUDPBuffer(UDPBuffer);
+  num_bytes := UDPCam.GetMessage(msg);
+  if num_bytes >= UDPBufSize then exit;
+  UDPBuffer.MessSize := num_bytes;
+  UDPBuffer.ReadDisp := 0;
+  move(msg[1], UDPBuffer.data[0], num_bytes);
+
+  mtype := NetGetByte(UDPBuffer);
+  version := NetGetByte(UDPBuffer);
+  ScanSegsCount := NetGetWord(UDPBuffer);
+
+  for i := 0 to ScanSegsCount - 1 do begin
+    ScanSegs[i].Y := NetGetWord(UDPBuffer);
+    ScanSegs[i].Xi := NetGetWord(UDPBuffer);
+    ScanSegs[i].Xf := NetGetWord(UDPBuffer);
+  end;
+
+  if CBRawDebug.Checked then begin
+    MemoDebug.Clear;
+    MemoDebug.Lines.Add(IntToStr(ScanSegsCount));
+    for i := 0 to ScanSegsCount - 1 do begin
+      MemoDebug.Lines.Add(format('%d, (%d, %d)', [ScanSegs[i].Y, ScanSegs[i].Xi, ScanSegs[i].Xf]));
+    end;
+  end;
+
+  if CBAction.ItemIndex = 1 then begin
+    ActionPars.Vnom := StrToFloatDef(EditLineFollowVnom.Text, ActionPars.Vnom);
+    ActionPars.Kw := StrToFloatDef(EditLineFollowKw.Text, ActionPars.kw);
+    ActionPars.Vdec := StrToFloatDef(EditLineFollowVdec.Text, ActionPars.Vdec);
+
+    // Find largest scanline Y
+    last_y := -1;
+    for i := 0 to ScanSegsCount - 1 do begin
+      last_y := max(ScanSegs[i].Y, last_y);
+    end;
+
+    // Find segment with the center nearest to the last used center
+    idx := -1;
+    best_d := 1e6;
+    if last_y >= 0 then begin
+      for i := 0 to ScanSegsCount - 1 do begin
+        if ScanSegs[i].y = last_y then begin
+          d := abs((ScanSegs[i].Xi + ScanSegs[i].Xf) / 2 - line_x);
+          if d < best_d then begin
+            best_d := d;
+            idx := i;
+          end;
+        end;
+      end;
+    end;
+
+    if idx >= 0 then begin
+      line_x := (ScanSegs[idx].Xi + ScanSegs[idx].Xf) / 2;
+    end;
+
+    e := (320 / 2 - line_x);
+    RS.V := max(0, ActionPars.Vnom - ActionPars.Vdec * abs(e));
+    RS.W := ActionPars.Kw * e;
+
+    sendVW(RS);
+  end else begin
+    //sendVW(RS);
+  end;
+
 end;
 
 procedure TFMain.BCloseSerialClick(Sender: TObject);
