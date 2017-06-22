@@ -108,6 +108,7 @@ object FMain: TFMain
     FixedCols = 0
     Font.Height = -11
     Font.Name = 'Sans'
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goSmoothScroll]
     ParentFont = False
     RowCount = 4
     TabOrder = 6
@@ -132,7 +133,7 @@ object FMain: TFMain
       '120'
       0
       3
-      '210'
+      '235'
       1
       0
       'Xi'
@@ -150,13 +151,13 @@ object FMain: TFMain
       'Xf'
       2
       1
-      '230'
+      '310'
       2
       2
-      '230'
+      '310'
       2
       3
-      '230'
+      '310'
       3
       0
       'Count'
@@ -189,6 +190,16 @@ object FMain: TFMain
     Width = 101
     Caption = 'Show Image'
     TabOrder = 8
+  end
+  object BSetScanLines: TButton
+    Left = 302
+    Height = 25
+    Top = 32
+    Width = 51
+    Anchors = [akTop, akRight]
+    Caption = 'Set'
+    OnClick = BSetScanLinesClick
+    TabOrder = 9
   end
   object Video: TSdpoVideo4L2
     Active = False

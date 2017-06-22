@@ -66,8 +66,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="284"/>
-        <CursorPos X="51" Y="297"/>
+        <TopLine Value="292"/>
+        <CursorPos X="25" Y="303"/>
         <UsageCount Value="221"/>
         <Bookmarks Count="1">
           <Item0 X="11" Y="252" ID="1"/>
@@ -369,6 +369,11 @@
       <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
+    <CodeGeneration>
+      <Checks>
+        <RangeChecks Value="True"/>
+      </Checks>
+    </CodeGeneration>
     <Linking>
       <Debugging>
         <GenerateDebugInfo Value="False"/>

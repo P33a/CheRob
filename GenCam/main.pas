@@ -36,6 +36,7 @@ type
   { TFMain }
 
   TFMain = class(TForm)
+    BSetScanLines: TButton;
     CBVideoActive: TCheckBox;
     Chart: TChart;
     CBChartActive: TCheckBox;
@@ -50,6 +51,7 @@ type
     Memo: TMemo;
     StatusBar: TStatusBar;
     Video: TSdpoVideo4L2;
+    procedure BSetScanLinesClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SendCameraMessage(mtype: integer);
@@ -107,7 +109,7 @@ begin
   UDPRob.Disconnect();
 end;
 
-procedure TFMain.FormShow(Sender: TObject);
+procedure TFMain.BSetScanLinesClick(Sender: TObject);
 var i: integer;
 begin
   AccBandsCount := SGScanLines.RowCount - 1;
@@ -117,12 +119,25 @@ begin
     AccBands[i].Xi := StrToInt(SGScanLines.Cells[1, i + 1]);
     AccBands[i].Xf := StrToInt(SGScanLines.Cells[2, i + 1]);
     AccBands[i].LineCount := StrToInt(SGScanLines.Cells[3, i + 1]);
-    //SetLength(AccBands[i].pix, AccBands[i].Xf - AccBands[i].Xi + 1);
     SetLength(AccBands[i].pix, Video.Width);
   end;
 
   SetLength(ScanSegs, 512);
   ScanSegsCount := 0;
+
+  Memo.Lines.Add(format('AccBandsCount: %d',[AccBandsCount]));
+  for i := 0 to AccBandsCount - 1 do begin
+    Memo.Lines.Add(format('Y: %d, Xi:%d, Xf:%d, lines:%d',[accBands[i].Y, accBands[i].Xi, accBands[i].Xf, accBands[i].LineCount]));
+  end;
+end;
+
+
+procedure TFMain.FormShow(Sender: TObject);
+begin
+  if FileExists('scanlines.xml') then begin
+    SGScanLines.LoadFromFile('scanlines.xml');
+  end;
+  BSetScanLines.Click();
 end;
 
 
@@ -162,6 +177,8 @@ end;
 
 procedure TFMain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
+  SGScanLines.SaveToFile('scanlines.xml');
+
   FCamFeatures.Close;
   Video.Close;
   FShowImage.Close;
@@ -198,7 +215,7 @@ begin
 
   for k := 0 to AccBandsCount - 1 do begin
     // Accumulate the RGB components over the selected lines
-    AccBands[k].pix[0].S := 0;
+    AccBands[k].pix[AccBands[k].Xi].S := 0;
     for i := AccBands[k].Xi to AccBands[k].Xf do begin
       with AccBands[k].pix[i] do begin
         r := 0;
@@ -214,10 +231,10 @@ begin
         end;
 
         if AccBands[k].lineCount > 0 then begin
+          L := (R + 2* G + B) div ( 4 * AccBands[k].lineCount);
           R := R div AccBands[k].lineCount;
           G := G div AccBands[k].lineCount;
           B := B div AccBands[k].lineCount;
-          L := (R + 2* G + B) div ( 4 * AccBands[k].lineCount);
           if i > AccBands[k].Xi then S := AccBands[k].pix[i - 1].S + L;
         end;
 
@@ -229,7 +246,7 @@ begin
       end;
     end;
 
-    w := 30;
+    w := 50;
     black := 300;
     for i := AccBands[k].Xi to AccBands[k].Xf do begin
       with AccBands[k].pix[i] do begin
@@ -239,7 +256,7 @@ begin
 
         old_black := black;
 
-        if (L < tresh - 30) then begin
+        if (L < tresh - 20) then begin
           black := 0;
         end else begin
           black := 300;
@@ -320,4 +337,6 @@ initialization
 end.
 
 //sudo modprobe bcm2835-v4l2
+// or
+//
 
