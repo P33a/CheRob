@@ -449,11 +449,12 @@ void loop()
     sendChannel('U', AD_bat * (1646.0 / 698.0));
     sendChannel('I', analogRead(IBatPin));
 
+    sendChannel('s', dist_L);
+    sendChannel('o', dist_R);
+    
     sendChannel('v', w_odo[0]);
     sendChannel('w', w_odo[1]);
 
-    sendChannel('s', dist_L);
-    sendChannel('o', dist_R);
     //Serial.print(SonarA.state);
 
     //stop =  millis();

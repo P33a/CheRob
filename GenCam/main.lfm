@@ -1,27 +1,27 @@
 object FMain: TFMain
-  Left = 265
+  Left = 264
   Height = 523
-  Top = 160
-  Width = 359
+  Top = 172
+  Width = 372
   HorzScrollBar.Page = 261
   VertScrollBar.Page = 32
   ActiveControl = CBVideoActive
   Caption = 'GenCam V1.0'
   ClientHeight = 523
-  ClientWidth = 359
+  ClientWidth = 372
   Font.Height = -12
   Font.Name = 'Sans'
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  SessionProperties = 'CBChartActive.Checked;CBShowImage.Checked;EditDevice.Text;EditLineCount.Text;EditLine.Text;Image.LeftPos;Image.TopPos;Left;Top;Width;Height'
+  SessionProperties = 'CBChartActive.Checked;CBShowImage.Checked;EditDeltaTresh.Text;EditDevice.Text;EditLineCount.Text;EditLine.Text;EditMinTrackWidth.Text;EditWindowSize.Text;Height;Image.LeftPos;Image.TopPos;Left;Top;Width;CBAutoOpenVideo.Checked'
   LCLVersion = '1.6.2.0'
   object CBVideoActive: TCheckBox
     Left = 4
-    Height = 23
+    Height = 25
     Top = 4
-    Width = 102
+    Width = 113
     Caption = 'Video Active'
     OnChange = CBVideoActiveChange
     TabOrder = 0
@@ -38,9 +38,9 @@ object FMain: TFMain
   end
   object Memo: TMemo
     Left = 0
-    Height = 120
+    Height = 216
     Top = 144
-    Width = 245
+    Width = 258
     Anchors = [akTop, akLeft, akRight]
     Font.Height = -11
     Font.Name = 'Sans'
@@ -51,56 +51,14 @@ object FMain: TFMain
     Left = 0
     Height = 23
     Top = 500
-    Width = 359
+    Width = 372
     Panels = <>
-  end
-  object Chart: TChart
-    Left = 4
-    Height = 200
-    Top = 296
-    Width = 352
-    AxisList = <    
-      item
-        Marks.LabelFont.Height = -12
-        Marks.LabelFont.Name = 'Sans'
-        Minors = <>
-        Range.Max = 300
-        Range.UseMax = True
-        Range.UseMin = True
-        Title.LabelFont.Orientation = 900
-      end    
-      item
-        Alignment = calBottom
-        Marks.LabelFont.Height = -12
-        Marks.LabelFont.Name = 'Sans'
-        Minors = <>
-      end>
-    Foot.Brush.Color = clBtnFace
-    Foot.Font.Color = clBlue
-    Title.Brush.Color = clBtnFace
-    Title.Font.Color = clBlue
-    Title.Text.Strings = (
-      'TAChart'
-    )
-    object LineSeriesRED: TLineSeries
-      LinePen.Color = clRed
-    end
-    object LineSeriesProc: TLineSeries
-    end
-  end
-  object CBChartActive: TCheckBox
-    Left = 4
-    Height = 23
-    Top = 272
-    Width = 101
-    Caption = 'Chart Active'
-    TabOrder = 5
   end
   object SGScanLines: TStringGrid
     Left = 0
     Height = 76
     Top = 64
-    Width = 356
+    Width = 369
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoFillColumns = True
     ColCount = 4
@@ -111,14 +69,14 @@ object FMain: TFMain
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goSmoothScroll]
     ParentFont = False
     RowCount = 4
-    TabOrder = 6
+    TabOrder = 4
     TitleFont.Height = -11
     TitleFont.Name = 'Sans'
     ColWidths = (
-      88
-      88
-      88
-      90
+      91
+      91
+      91
+      94
     )
     Cells = (
       16
@@ -174,32 +132,124 @@ object FMain: TFMain
   end
   object MemoDebug: TMemo
     Left = 249
-    Height = 120
+    Height = 216
     Top = 144
-    Width = 104
+    Width = 117
     Anchors = [akTop, akLeft, akRight]
     Font.Height = -11
     Font.Name = 'Sans'
     ParentFont = False
-    TabOrder = 7
+    TabOrder = 5
   end
   object CBShowImage: TCheckBox
     Left = 4
-    Height = 23
+    Height = 25
     Top = 32
-    Width = 101
+    Width = 114
     Caption = 'Show Image'
-    TabOrder = 8
+    TabOrder = 6
   end
   object BSetScanLines: TButton
-    Left = 302
+    Left = 315
     Height = 25
     Top = 32
     Width = 51
     Anchors = [akTop, akRight]
     Caption = 'Set'
     OnClick = BSetScanLinesClick
+    TabOrder = 7
+  end
+  object Label1: TLabel
+    Left = 4
+    Height = 14
+    Top = 376
+    Width = 79
+    Caption = 'Window Size:'
+    ParentColor = False
+  end
+  object EditWindowSize: TEdit
+    Left = 112
+    Height = 22
+    Top = 370
+    Width = 64
+    AutoSize = False
+    TabOrder = 8
+    Text = '50'
+  end
+  object Label2: TLabel
+    Left = 4
+    Height = 14
+    Top = 398
+    Width = 74
+    Caption = 'Delta Tresh:'
+    ParentColor = False
+  end
+  object EditDeltaTresh: TEdit
+    Left = 112
+    Height = 22
+    Top = 392
+    Width = 64
+    AutoSize = False
     TabOrder = 9
+    Text = '20'
+  end
+  object Label3: TLabel
+    Left = 4
+    Height = 14
+    Top = 420
+    Width = 100
+    Caption = 'Min Track Width:'
+    ParentColor = False
+  end
+  object EditMinTrackWidth: TEdit
+    Left = 112
+    Height = 22
+    Top = 414
+    Width = 64
+    AutoSize = False
+    TabOrder = 10
+    Text = '10'
+  end
+  object EditUV: TEdit
+    Left = 249
+    Height = 22
+    Top = 370
+    Width = 103
+    AutoSize = False
+    TabOrder = 11
+  end
+  object Label4: TLabel
+    Left = 192
+    Height = 14
+    Top = 374
+    Width = 36
+    Caption = '(u, v):'
+    ParentColor = False
+  end
+  object Label5: TLabel
+    Left = 192
+    Height = 14
+    Top = 396
+    Width = 51
+    Caption = '(R,G, B):'
+    ParentColor = False
+  end
+  object EditRGB: TEdit
+    Left = 249
+    Height = 22
+    Top = 392
+    Width = 103
+    AutoSize = False
+    TabOrder = 12
+  end
+  object CBAutoOpenVideo: TCheckBox
+    Left = 264
+    Height = 25
+    Top = 4
+    Width = 100
+    Caption = 'Auto Open'
+    OnChange = CBAutoOpenVideoChange
+    TabOrder = 13
   end
   object Video: TSdpoVideo4L2
     Active = False
@@ -224,5 +274,11 @@ object FMain: TFMain
     Timeout = 0
     left = 112
     top = 200
+  end
+  object TimerVideo: TTimer
+    Enabled = False
+    OnTimer = TimerVideoTimer
+    left = 215
+    top = 421
   end
 end

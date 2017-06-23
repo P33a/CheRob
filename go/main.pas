@@ -17,6 +17,7 @@ type
   TScanSegs = array of TScanSeg;
 
   TActionPars = record
+    CenterX: integer;
     Vnom, Kw, Vdec: double;
   end;
 
@@ -31,13 +32,25 @@ type
     BConfigSet: TButton;
     BSetRobotPose: TButton;
     BRobotSetVW: TButton;
+    BLineFollwerSet: TButton;
+    BSetState: TButton;
+    CBState: TComboBox;
     CBRawDebug: TCheckBox;
     CBAction: TComboBox;
+    CBAutoOpen: TCheckBox;
     EditLineFollowKw: TEdit;
     EditLineFollowVdec: TEdit;
+    EditLineFollowCenterX: TEdit;
+    EditRobotSetS: TEdit;
+    EditRobotS: TEdit;
+    EditRobotState: TEdit;
+    EditSonar0: TEdit;
+    EditSonar1: TEdit;
     EditRobotV: TEdit;
     EditLineFollowVnom: TEdit;
+    EditRobotControlV: TEdit;
     EditRobotW: TEdit;
+    EditRobotControlW: TEdit;
     EditRobotX: TEdit;
     EditRobotSetX: TEdit;
     EditRobotSetV: TEdit;
@@ -46,6 +59,7 @@ type
     EditRobotSetTheta: TEdit;
     EditRobotSetY: TEdit;
     EditRobotSetW: TEdit;
+    EditSpeedOfSound: TEdit;
     EditWheelRadius: TEdit;
     EditSerialName: TEdit;
     EditSendRaw: TEdit;
@@ -55,6 +69,12 @@ type
     Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
+    Label13: TLabel;
+    Label14: TLabel;
+    Label15: TLabel;
+    Label16: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -75,13 +95,16 @@ type
     TabControl: TTabSheet;
     procedure BCloseSerialClick(Sender: TObject);
     procedure BConfigSetClick(Sender: TObject);
+    procedure BLineFollwerSetClick(Sender: TObject);
     procedure BOpenSerialClick(Sender: TObject);
     procedure BRobotSetVWClick(Sender: TObject);
     procedure BRobotStopClick(Sender: TObject);
     procedure BSendRawClick(Sender: TObject);
     procedure BSetRobotPoseClick(Sender: TObject);
+    procedure BSetStateClick(Sender: TObject);
     procedure EditSendRawKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure EditSpeedOfSoundChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -112,6 +135,8 @@ var
 
   ActionPars: TActionPars;
   line_x: double;
+
+  SMFollowLine: TStateMachine;
 
 implementation
 
@@ -197,9 +222,18 @@ end;
 
 procedure TFMain.BSetRobotPoseClick(Sender: TObject);
 begin
+  RS.S := StrToFloat(EditRobotSetS.Text);
   RS.x := StrToFloat(EditRobotSetX.Text);
   RS.y := StrToFloat(EditRobotSetY.Text);
   RS.theta := StrToFloat(EditRobotSetTheta.Text);
+end;
+
+procedure TFMain.BSetStateClick(Sender: TObject);
+var i: integer;
+begin
+  i := CBState.ItemIndex;
+  if i < 0 then exit;
+  SetNewState(SMFollowLine, CBState.Items[i]);
 end;
 
 procedure TFMain.EditSendRawKeyDown(Sender: TObject; var Key: Word;
@@ -210,6 +244,11 @@ begin
   end;
 end;
 
+procedure TFMain.EditSpeedOfSoundChange(Sender: TObject);
+begin
+
+end;
+
 procedure TFMain.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   UDPCam.Disconnect();
@@ -218,6 +257,7 @@ end;
 
 procedure TFMain.FormCreate(Sender: TObject);
 begin
+  SetCurrentDir('/home/pi/CheRob/go/');
   SerialChannels := TChannels.Create(@processFrame);
   RC.dt := 0.04;
   RC.wheel_dist := 0.188;   //
@@ -226,12 +266,16 @@ begin
 
   SetLength(ScanSegs, 512);
   ScanSegsCount := 0;
+
+  SetNewState(SMFollowLine, 'follow_line');
 end;
 
 procedure TFMain.FormShow(Sender: TObject);
 begin
   ShowSerialState();
   BConfigSet.Click();
+  BLineFollwerSet.Click();
+  if CBAutoOpen.Checked then BOpenSerial.Click();
   UDPCam.Listen(9020);
 end;
 
@@ -272,6 +316,7 @@ var msg: string;
     i, idx: integer;
     e, d, best_d: double;
     last_y: integer;
+    CenterX: integer;
 begin
   ClearUDPBuffer(UDPBuffer);
   num_bytes := UDPCam.GetMessage(msg);
@@ -299,9 +344,6 @@ begin
   end;
 
   if CBAction.ItemIndex = 1 then begin
-    ActionPars.Vnom := StrToFloatDef(EditLineFollowVnom.Text, ActionPars.Vnom);
-    ActionPars.Kw := StrToFloatDef(EditLineFollowKw.Text, ActionPars.kw);
-    ActionPars.Vdec := StrToFloatDef(EditLineFollowVdec.Text, ActionPars.Vdec);
 
     // Find largest scanline Y
     last_y := -1;
@@ -309,7 +351,7 @@ begin
       last_y := max(ScanSegs[i].Y, last_y);
     end;
 
-    // Find segment with the center nearest to the last used center
+    // Find segment with the center nearest to the middle
     idx := -1;
     best_d := 1e6;
     if last_y >= 0 then begin
@@ -328,11 +370,51 @@ begin
       line_x := (ScanSegs[idx].Xi + ScanSegs[idx].Xf) / 2;
     end;
 
-    e := (320 / 2 - line_x);
-    RS.V := max(0, ActionPars.Vnom - ActionPars.Vdec * abs(e));
-    RS.W := ActionPars.Kw * e;
+
+    if (SMFollowLine.state = 'follow_line') and (RS.min_sonar < 0.2) then begin
+      SetNewState(SMFollowLine, 'avoid_obstacle');
+    end else if (SMFollowLine.state = 'avoid_obstacle') and (RS.min_sonar > 0.5) then begin
+      SetNewState(SMFollowLine, 'avoid_obstacle_more');
+      SMFollowLine.Anglein := RS.theta;
+    end else if (SMFollowLine.state = 'avoid_obstacle_more') and (RS.theta - SMFollowLine.Anglein < degtorad(-25)) then begin
+      SetNewState(SMFollowLine, 'contour_obstacle');
+      SMFollowLine.Sin := RS.S;
+    end else if (SMFollowLine.state = 'contour_obstacle') and
+                ((RS.S - SMFollowLine.Sin > 0.9) or
+                ((RS.S - SMFollowLine.Sin > 0.5) and (idx >= 0)) )then begin
+      SetNewState(SMFollowLine, 'align_line');
+      SMFollowLine.Anglein := RS.theta;
+    end else if (SMFollowLine.state = 'align_line') and (RS.theta - SMFollowLine.Anglein < degtorad(-90)) then begin
+      SetNewState(SMFollowLine, 'follow_line');
+    end;
+
+    if SMFollowLine.state = 'follow_line' then begin
+      e := (320 / 2 - line_x);
+      RS.V := max(0, ActionPars.Vnom - ActionPars.Vdec * abs(e));
+      RS.W := ActionPars.Kw * e;
+    end else if SMFollowLine.state = 'avoid_obstacle' then begin
+      RS.V := 0;
+      RS.W := -1;
+    end else if SMFollowLine.state = 'avoid_obstacle_more' then begin
+      RS.V := 0;
+      RS.W := -1;
+     end else if SMFollowLine.state = 'contour_obstacle' then begin
+      RS.V := 0.2;
+      RS.W := RS.V / 0.2;
+     end else if SMFollowLine.state = 'align_line' then begin
+       RS.V := 0.1;
+       RS.W := -RS.V / 0.1;
+     end else if SMFollowLine.state = 'stop_obstacle' then begin
+      RS.V := 0;
+      RS.W := 0;
+    end;
 
     sendVW(RS);
+
+    EditRobotControlV.Text :=  format('%.4g', [RS.v]);
+    EditRobotControlW.Text :=  format('%.4g', [RS.w]);
+    EditRobotState.Text := SMFollowLine.state;
+
   end else begin
     //sendVW(RS);
   end;
@@ -349,6 +431,15 @@ procedure TFMain.BConfigSetClick(Sender: TObject);
 begin
   RC.wheel_radius := StrToFloat(EditWheelRadius.Text);
   RC.wheel_dist := StrToFloat(EditWheelDistance.Text);
+  RC.speed_of_sound := StrToFloat(EditSpeedOfSound.Text);
+end;
+
+procedure TFMain.BLineFollwerSetClick(Sender: TObject);
+begin
+  ActionPars.Vnom := StrToFloat(EditLineFollowVnom.Text);
+  ActionPars.Kw := StrToFloat(EditLineFollowKw.Text);
+  ActionPars.Vdec := StrToFloat(EditLineFollowVdec.Text);
+  ActionPars.CenterX := StrToInt(EditLineFollowCenterX.Text);
 end;
 
 
@@ -363,6 +454,21 @@ begin
   if channel = 'i' then begin
   //end else if channel = 'r' then begin
     // if the arduino was reset ...
+  end else if channel = 's' then begin
+    RS.sonar_raw[0] := Smallint(value);
+    RS.sonar[0] := 1e-6 * RS.sonar_raw[0] * RC.speed_of_sound / 2;
+    //EditSonar0.Text := IntToStr(RS.sonar_raw[0]);
+    EditSonar0.Text := format('%.4g', [RS.sonar[0]]);
+  end else if channel = 'o' then begin
+    RS.sonar_raw[1] := Smallint(value);
+    RS.sonar[1] := 1e-6 * RS.sonar_raw[1] * RC.speed_of_sound / 2;
+    //EditSonar1.Text := IntToStr(RS.sonar_raw[1]);
+    EditSonar1.Text := format('%.4g', [RS.sonar[1]]);
+
+    RS.min_sonar := min(RS.sonar[0], RS.sonar[1]);
+    RS.delta_sonar := max(RS.sonar[0], RS.sonar[1]) - RS.min_sonar;
+
+
   end else if channel = 'v' then begin
     RS.odo[0] := Smallint(value);
     //EditVOdo.Text:=IntToStr(RS.odo[0]);
@@ -378,6 +484,7 @@ begin
     EditRobotX.Text :=  format('%.4g', [RS.x]);
     EditRobotY.Text :=  format('%.4g', [RS.y]);
     EditRobotTheta.Text :=  format('%.4g', [radtodeg(RS.theta)]);
+    EditRobotS.Text :=  format('%.4g', [RS.S]);
 
   end else if channel = 'u' then begin
     iVbat := value shr 16;
@@ -386,6 +493,8 @@ begin
     //EditBatteryCurrent.Text := format('%.2f', [iIBat / 103 * 0.53]);
     //EditBatteryVoltage.Text := IntToStr(iVBat);
     //EditBatteryVoltage.Text := format('%.2f', [iVbat / 390 * 10.0]);
+
+
   end else if channel in ['s', 't'] then begin
     i := 1 + ord(channel) - ord('r');
 

@@ -1,10 +1,10 @@
 object FCamFeatures: TFCamFeatures
   Left = 888
-  Height = 536
-  Top = 177
+  Height = 534
+  Top = 179
   Width = 390
   Caption = 'Camera Features'
-  ClientHeight = 536
+  ClientHeight = 534
   ClientWidth = 390
   OnCreate = FormCreate
   OnShow = FormShow
@@ -12,7 +12,7 @@ object FCamFeatures: TFCamFeatures
   LCLVersion = '1.6.2.0'
   object SGVideoControls: TStringGrid
     Left = 0
-    Height = 440
+    Height = 438
     Top = 60
     Width = 426
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -93,7 +93,7 @@ object FCamFeatures: TFCamFeatures
   object BSave: TButton
     Left = 312
     Height = 25
-    Top = 506
+    Top = 504
     Width = 75
     Anchors = [akRight, akBottom]
     Caption = 'Save'
@@ -103,7 +103,7 @@ object FCamFeatures: TFCamFeatures
   object BLoad: TButton
     Left = 228
     Height = 25
-    Top = 506
+    Top = 504
     Width = 75
     Anchors = [akRight, akBottom]
     Caption = 'Load'

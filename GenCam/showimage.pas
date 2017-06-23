@@ -22,11 +22,11 @@ type
     { private declarations }
   public
     image: TBGRABitmap;
-    ZoomX, ZoomY: integer;
   end;
 
 var
   FShowImage: TFShowImage;
+  ZoomX, ZoomY: integer;
 
 implementation
 

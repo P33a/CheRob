@@ -6,11 +6,18 @@ interface
 
 uses
   Classes, SysUtils, LResources, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  SdpoVideo4L2, VideoDev2, LCLIntf, ComCtrls, ValEdit, Grids, videoconv,
-  rlan, IniPropStorage, TAGraph, TASeries, lNetComponents, CamFeatures, lNet,
-  BGRABitmap, BGRABitmapTypes, math;
+  SdpoVideo4L2, VideoDev2, LCLIntf, ComCtrls, ValEdit, Grids, videoconv, rlan,
+  IniPropStorage, ExtCtrls, TAGraph, TASeries, lNetComponents, CamFeatures,
+  lNet, BGRABitmap, BGRABitmapTypes, math;
 
 type
+  TProcPars = record
+    minTrackWidth: integer;
+    DeltaTresh: integer;
+    WindowSize: integer;
+  end;
+
+
   PTRGBAcc = ^TRGBAcc;
   TRGBAcc = record
     R, G, B, L, S: integer;
@@ -38,26 +45,36 @@ type
   TFMain = class(TForm)
     BSetScanLines: TButton;
     CBVideoActive: TCheckBox;
-    Chart: TChart;
-    CBChartActive: TCheckBox;
     CBShowImage: TCheckBox;
-    LineSeriesProc: TLineSeries;
-    LineSeriesRED: TLineSeries;
+    CBAutoOpenVideo: TCheckBox;
+    EditRGB: TEdit;
+    EditWindowSize: TEdit;
     EditDevice: TEdit;
+    EditDeltaTresh: TEdit;
+    EditMinTrackWidth: TEdit;
+    EditUV: TEdit;
     IniPropStorage: TIniPropStorage;
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
     MemoDebug: TMemo;
     SGScanLines: TStringGrid;
+    TimerVideo: TTimer;
     UDPRob: TLUDPComponent;
     Memo: TMemo;
     StatusBar: TStatusBar;
     Video: TSdpoVideo4L2;
     procedure BSetScanLinesClick(Sender: TObject);
+    procedure CBAutoOpenVideoChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SendCameraMessage(mtype: integer);
     procedure CBVideoActiveChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure TimerVideoTimer(Sender: TObject);
     procedure VideoFrame(Sender: TObject; FramePtr: PByte);
     //procedure qsort(var a : TMaxColorArray);
   private
@@ -78,7 +95,7 @@ type
 var
   FMain: TFMain;
   NetOutBuf: TUDPBuffer;
-
+  ProcPars: TProcPars;
 
 implementation
 
@@ -129,6 +146,18 @@ begin
   for i := 0 to AccBandsCount - 1 do begin
     Memo.Lines.Add(format('Y: %d, Xi:%d, Xf:%d, lines:%d',[accBands[i].Y, accBands[i].Xi, accBands[i].Xf, accBands[i].LineCount]));
   end;
+
+  with ProcPars do begin
+    WindowSize := StrToInt(EditWindowSize.Text);
+    DeltaTresh := StrToInt(EditDeltaTresh.Text);
+    minTrackWidth := StrToInt(EditMinTrackWidth.Text);
+  end;
+
+end;
+
+procedure TFMain.CBAutoOpenVideoChange(Sender: TObject);
+begin
+  if CBAutoOpenVideo.Checked then TimerVideo.Enabled := true;
 end;
 
 
@@ -138,6 +167,7 @@ begin
     SGScanLines.LoadFromFile('scanlines.xml');
   end;
   BSetScanLines.Click();
+  if CBAutoOpenVideo.Checked then TimerVideo.Enabled := true;
 end;
 
 
@@ -169,6 +199,10 @@ begin
     WriteStr(S, Video.PixelFormat);
     Memo.Lines.Add('format: ' + s);
 
+    if CBAutoOpenVideo.Checked then begin
+      FCamFeatures.BLoadClick(Sender);
+    end;
+
   end else begin
     Video.Close;
     FShowImage.Close;
@@ -187,6 +221,7 @@ end;
 procedure TFMain.FormCreate(Sender: TObject);
 var path: string;
 begin
+  SetCurrentDir('/home/pi/CheRob/GenCam/');
   DefaultFormatSettings.DecimalSeparator := '.';
 
   path := ExtractFilePath(Application.ExeName) + DirectorySeparator;
@@ -199,6 +234,12 @@ begin
   UDPRob.Connect('127.0.0.1', 9021);
 end;
 
+procedure TFMain.TimerVideoTimer(Sender: TObject);
+begin
+  TimerVideo.Enabled := false;
+  CBVideoActive.Checked := true;
+end;
+
 procedure TFMain.ProcessLines(Image: TBGRABitmap);
 var i, j, k, idx: integer;
     BGRAPixel: TBGRAPixel;
@@ -207,10 +248,6 @@ var i, j, k, idx: integer;
 begin
   ScanSegsCount := 0;
 
-  if CBChartActive.Checked then begin
-    LineSeriesRED.Clear;
-    LineSeriesProc.Clear;
-  end;
   idx := max(0, SGScanLines.Selection.Top - 1);
 
   for k := 0 to AccBandsCount - 1 do begin
@@ -238,15 +275,15 @@ begin
           if i > AccBands[k].Xi then S := AccBands[k].pix[i - 1].S + L;
         end;
 
-        if (k = idx) and CBChartActive.Checked then begin
+        //if (k = idx) and CBChartActive.Checked then begin
           // Show in the chart
-          LineSeriesRED.AddXY(i, L);
-        end;
+          //LineSeriesRED.AddXY(i, L);
+        //end;
 
       end;
     end;
 
-    w := 50;
+    w := ProcPars.WindowSize;
     black := 300;
     for i := AccBands[k].Xi to AccBands[k].Xf do begin
       with AccBands[k].pix[i] do begin
@@ -256,7 +293,7 @@ begin
 
         old_black := black;
 
-        if (L < tresh - 20) then begin
+        if (L < tresh - ProcPars.DeltaTresh) then begin
           black := 0;
         end else begin
           black := 300;
@@ -271,13 +308,15 @@ begin
         // End Black block
         if (old_black = 0) and (black > 0) then begin
           ScanSegs[ScanSegsCount].Xf := i;
-          inc(ScanSegsCount);
+          if ScanSegs[ScanSegsCount].Xf - ScanSegs[ScanSegsCount].Xi > ProcPars.minTrackWidth then begin
+            inc(ScanSegsCount);
+          end;
         end;
 
-        if (k = idx) and CBChartActive.Checked then begin
+        //if (k = idx) and CBChartActive.Checked then begin
           // Show in the chart
-          LineSeriesProc.AddXY(i, Black);
-        end;
+          //LineSeriesProc.AddXY(i, Black);
+        //end;
 
       end;
 
@@ -303,6 +342,8 @@ end;
 
 procedure TFMain.VideoFrame(Sender: TObject; FramePtr: PByte);
 var i, j, k: integer;
+    u, v: integer;
+    pix: TBGRAPixel;
 begin
   FrameRate:=round(1/((GetTickCount-FrameTime)/1000));
   FrameTime:=GetTickCount;
@@ -325,6 +366,12 @@ begin
 
   ProcessLines(FShowImage.image);
   SendCameraMessage(0);
+
+  EditUV.Text := format('(%d, %d)', [ZoomX, ZoomY]);
+  u := min(max(0, ZoomX), Video.Width - 1);
+  v := min(max(0, ZoomY), Video.Height - 1);
+  pix := FShowImage.image.ScanAtInteger(u, v);
+  EditRGB.Text := format('%d, %d, %d', [pix.red, pix.green, pix.blue]);
 
   if CBShowImage.Checked then begin
     FShowImage.Refresh;
